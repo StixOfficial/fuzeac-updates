@@ -30,13 +30,12 @@ client.on("interactionCreate", async interaction => {
   if (interaction.isChatInputCommand()) {
     if (interaction.commandName !== "pushupdate") return;
 
-    // 🔒 Only allow this specific user ID
-    if (interaction.user.id !== "1476497805358006346") {
-      return interaction.reply({
-        content: "❌ You do not have permission to use this command.",
-        ephemeral: true
-      });
-    }
+   if (!interaction.member.roles.cache.has("1476497805358006346")) {
+  return interaction.reply({
+    content: "❌ You do not have permission to use this command.",
+    ephemeral: true
+  });
+}
 
     const modal = new ModalBuilder()
       .setCustomId("pushupdateModal")
