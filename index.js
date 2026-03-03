@@ -6,7 +6,10 @@ const {
   TextInputStyle,
   ActionRowBuilder,
   EmbedBuilder,
-  InteractionType
+  InteractionType,
+  REST,
+  Routes,
+  SlashCommandBuilder
 } = require("discord.js");
 
 const express = require("express");
@@ -14,6 +17,8 @@ const express = require("express");
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
+
+/* ===================== EXPRESS KEEP ALIVE ===================== */
 
 const app = express();
 app.get("/", (_, res) => res.send("Bot running"));
@@ -23,7 +28,36 @@ app.listen(PORT, () =>
   console.log(`Web server running on port ${PORT}`)
 );
 
-// ✅ Updated event name
+/* ===================== REGISTER SLASH COMMAND ===================== */
+
+const commands = [
+  new SlashCommandBuilder()
+    .setName("pushupdate")
+    .setDescription("Post an anti-cheat update")
+].map(cmd => cmd.toJSON());
+
+const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
+
+(async () => {
+  try {
+    console.log("Registering slash command...");
+
+    await rest.put(
+      Routes.applicationGuildCommands(
+        process.env.CLIENT_ID,
+        process.env.GUILD_ID
+      ),
+      { body: commands }
+    );
+
+    console.log("Slash command registered instantly.");
+  } catch (err) {
+    console.error(err);
+  }
+})();
+
+/* ===================== BOT READY ===================== */
+
 client.once("clientReady", () => {
   console.log(`Logged in as ${client.user.tag}`);
 
@@ -33,7 +67,11 @@ client.once("clientReady", () => {
   });
 });
 
+/* ===================== INTERACTIONS ===================== */
+
 client.on("interactionCreate", async interaction => {
+
+  /* Slash Command */
   if (interaction.isChatInputCommand()) {
     if (interaction.commandName !== "pushupdate") return;
 
@@ -50,7 +88,7 @@ client.on("interactionCreate", async interaction => {
 
     const modal = new ModalBuilder()
       .setCustomId("pushupdateModal")
-      .setTitle("Push Resource Update");
+      .setTitle("Push Anti-Cheat Update");
 
     modal.addComponents(
       new ActionRowBuilder().addComponents(
@@ -72,6 +110,7 @@ client.on("interactionCreate", async interaction => {
     await interaction.showModal(modal);
   }
 
+  /* Modal Submit */
   if (interaction.type === InteractionType.ModalSubmit) {
     if (interaction.customId !== "pushupdateModal") return;
 
@@ -81,7 +120,7 @@ client.on("interactionCreate", async interaction => {
     const role = interaction.guild.roles.cache.find(r => r.name === "Client");
 
     const embed = new EmbedBuilder()
-      .setColor("#f53131ff")
+      .setColor("#f53131")
       .setTitle("<:fuze:1455337674369138761> Fuze Anti-Cheat")
       .addFields(
         { name: "Version", value: version, inline: true },
@@ -101,5 +140,7 @@ client.on("interactionCreate", async interaction => {
     });
   }
 });
+
+/* ===================== LOGIN ===================== */
 
 client.login(process.env.DISCORD_TOKEN);
