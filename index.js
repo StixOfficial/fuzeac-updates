@@ -121,7 +121,7 @@ client.on("interactionCreate", async interaction => {
 
     const embed = new EmbedBuilder()
       .setColor("#f53131")
-      .setTitle("<:fuze:1455337674369138761> Fuze Anti-Cheat")
+      .setTitle("Fuze Anti-Cheat Updates")
       .addFields(
         { name: "Version", value: version, inline: true },
         { name: "Changes Made", value: `\`\`\`${changes}\`\`\`` }
