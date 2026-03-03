@@ -11,13 +11,20 @@ const {
 
 const express = require("express");
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds]
+});
 
 const app = express();
 app.get("/", (_, res) => res.send("Bot running"));
-app.listen(3000);
 
-client.once("ready", () => {
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () =>
+  console.log(`Web server running on port ${PORT}`)
+);
+
+// ✅ Updated event name
+client.once("clientReady", () => {
   console.log(`Logged in as ${client.user.tag}`);
 
   client.user.setPresence({
@@ -30,12 +37,16 @@ client.on("interactionCreate", async interaction => {
   if (interaction.isChatInputCommand()) {
     if (interaction.commandName !== "pushupdate") return;
 
-   if (!interaction.member.roles.cache.has("1476497805358006346")) {
-  return interaction.reply({
-    content: "❌ You do not have permission to use this command.",
-    ephemeral: true
-  });
-}
+    // 🔒 Role restriction
+    if (
+      !interaction.inGuild() ||
+      !interaction.member.roles.cache.has("1476497805358006346")
+    ) {
+      return interaction.reply({
+        content: "❌ You do not have permission to use this command.",
+        ephemeral: true
+      });
+    }
 
     const modal = new ModalBuilder()
       .setCustomId("pushupdateModal")
@@ -84,7 +95,10 @@ client.on("interactionCreate", async interaction => {
       embeds: [embed]
     });
 
-    await interaction.reply({ content: "✅ Update posted.", ephemeral: true });
+    await interaction.reply({
+      content: "✅ Update posted.",
+      ephemeral: true
+    });
   }
 });
 
